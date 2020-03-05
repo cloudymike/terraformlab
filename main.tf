@@ -81,23 +81,25 @@ resource "aws_security_group" "ssh" {
 }
 
 resource "aws_route53_record" dns_name {
-  zone_id = var.hosted_zone_id
+  zone_id = data.aws_route53_zone.selected.zone_id
   name    = "${var.subdomain}.${var.domain}"
   type    = "A"
   ttl     = "60"
   records = ["${aws_instance.example.public_ip}"]
 }
 
+
+######################### Data
+data "aws_route53_zone" "selected" {
+  name         = "${var.domain}."
+  private_zone = false
+}
+
+
 variable "server_port" {
   description = "The port the server will use for HTTP requests"
   type        = number
   default     = 8080
-}
-
-variable "hosted_zone_id" {
-  description = "The hosted zone to use for dns"
-  type        = string
-  default     = "Z35WUM7D19XEYL"
 }
 
 variable "domain" {
@@ -129,7 +131,6 @@ output "public_ip" {
 # TODO 
 #  Parameterize hostname, domain and subdomain
 #  Parameter if certbot is a testrun (staging)
-#  Either domain or domain id should be derived
 #  Follow book setup
 #  letsencrypt/ACME with terraform? 
 #    https://www.terraform.io/docs/providers/acme/dns_providers/acme-dns.html
