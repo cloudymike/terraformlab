@@ -25,7 +25,11 @@ resource "aws_instance" "example" {
               add-apt-repository -y ppa:certbot/certbot
               apt-get update
               apt-get install -y certbot python-certbot-nginx
-              certbot --nginx -n --agree-tos -d 'testme.hopitty.com' -m 'hakansso@pacbell.net' --test-cert
+              if [ ${var.production} ]; then
+                echo certbot --nginx -n --agree-tos -d "${var.subdomain}.${var.domain}" -m "admin.${var.domain}"
+              else
+                certbot --nginx -n --agree-tos -d "${var.subdomain}.${var.domain}" -m "admin.${var.domain}" --test-cert
+              fi
               echo "Hello, World" > index.html
               nohup busybox httpd -f -p ${var.server_port} &
               EOF
@@ -76,9 +80,9 @@ resource "aws_security_group" "ssh" {
 
 }
 
-resource "aws_route53_record" "testme" {
+resource "aws_route53_record" dns_name {
   zone_id = var.hosted_zone_id
-  name    = "testme.hopitty.com"
+  name    = "${var.subdomain}.${var.domain}"
   type    = "A"
   ttl     = "60"
   records = ["${aws_instance.example.public_ip}"]
@@ -96,16 +100,38 @@ variable "hosted_zone_id" {
   default     = "Z35WUM7D19XEYL"
 }
 
+variable "domain" {
+  description = "hosted zone domain"
+  type        = string
+  default     = "hopitty.com"
+}
+
+variable "subdomain" {
+  description = "subdomain or server name"
+  type        = string
+  default     = "testme"
+}
+
+variable "production" {
+  description = "If it is a production deploy"
+  type        = bool
+  default     = false
+}
+
 output "public_ip" {
   value       = aws_instance.example.public_ip
   description = "The public IP address of the web server"
 }
+
+
+
 
 # TODO 
 #  Parameterize hostname, domain and subdomain
 #  Parameter if certbot is a testrun (staging)
 #  Either domain or domain id should be derived
 #  Follow book setup
-
+#  letsencrypt/ACME with terraform? 
+#    https://www.terraform.io/docs/providers/acme/dns_providers/acme-dns.html
 
 
