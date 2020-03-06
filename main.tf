@@ -15,24 +15,7 @@ resource "aws_instance" "example" {
       aws_security_group.ssh.id,
   ]
 
-  user_data = <<-EOF
-              #!/bin/bash
-              apt-get update
-              apt-get -y install awscli
-              apt-get -y install nginx
-              apt-get install -y software-properties-common
-              add-apt-repository -y universe
-              add-apt-repository -y ppa:certbot/certbot
-              apt-get update
-              apt-get install -y certbot python-certbot-nginx
-              if [ ${var.production} ]; then
-                echo certbot --nginx -n --agree-tos -d "${var.subdomain}.${var.domain}" -m "admin.${var.domain}"
-              else
-                certbot --nginx -n --agree-tos -d "${var.subdomain}.${var.domain}" -m "admin.${var.domain}" --test-cert
-              fi
-              echo "Hello, World" > index.html
-              nohup busybox httpd -f -p ${var.server_port} &
-              EOF
+  user_data = data.template_file.user_data.rendered
   tags = {
     Name = "terraform-example"
   }
@@ -50,12 +33,6 @@ resource "aws_security_group" "instance" {
   ingress {
     from_port      = 443
     to_port        = 443
-    protocol       = "tcp"
-    cidr_blocks    = ["0.0.0.0/0"]
-  }
-  ingress {
-    from_port      = var.server_port
-    to_port        = var.server_port
     protocol       = "tcp"
     cidr_blocks    = ["0.0.0.0/0"]
   }
@@ -89,18 +66,22 @@ resource "aws_route53_record" dns_name {
 }
 
 
-######################### Data
+######################### Data #########################
 data "aws_route53_zone" "selected" {
   name         = "${var.domain}."
   private_zone = false
 }
 
-
-variable "server_port" {
-  description = "The port the server will use for HTTP requests"
-  type        = number
-  default     = 8080
+data "template_file" "user_data" {
+  template = file("user_data.sh")
+  vars = {
+    domain = var.domain
+    subdomain = var.subdomain
+    production = var.production
+  }
 }
+
+######################### vars #########################
 
 variable "domain" {
   description = "hosted zone domain"
