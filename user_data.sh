@@ -18,7 +18,7 @@ apt-get install -y mosquitto mosquitto-clients
 
 
 
-if [ ${production} ]; then
+if [ "${release_type}" == "production"]; then
   echo certbot --nginx -n --agree-tos\
     -d "${subdomain}.${domain}"\
     -m "admin@${domain}"
@@ -27,7 +27,10 @@ else
     -d "${subdomain}.${domain}"\
     -m "admin@${domain}" --test-cert
 fi
+
+
 aws s3 cp s3://hopfront/nginx_default.conf /etc/nginx/sites-enabled/default
+service nginx restart
 
 git clone -q --depth 1 https://github.com/cloudymike/hopitty.git
 cd hopitty/src/hopfront

@@ -77,7 +77,7 @@ data "template_file" "user_data" {
   vars = {
     domain = var.domain
     subdomain = var.subdomain
-    production = var.production
+    release_type = var.release_type
   }
 }
 
@@ -95,10 +95,10 @@ variable "subdomain" {
   default     = "testme"
 }
 
-variable "production" {
+variable "release_type" {
   description = "If it is a production deploy"
-  type        = bool
-  default     = false
+  type        = string
+  default     = "development"
 }
 
 output "public_ip" {
