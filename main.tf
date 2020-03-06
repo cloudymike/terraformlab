@@ -110,10 +110,13 @@ output "public_ip" {
 
 
 # TODO 
-#  Parameterize hostname, domain and subdomain
-#  Parameter if certbot is a testrun (staging)
 #  Follow book setup
-#  letsencrypt/ACME with terraform? 
-#    https://www.terraform.io/docs/providers/acme/dns_providers/acme-dns.html
-
+# TODO: These should be created later
+#   key_name = "mikael"
+#   iam_instance_profile = "kmsdns"
+# TODO Setup network, vpc etc.
+# TODO setup git download and web server
+# TODO setup aws access to file
+# TODO AWS mqtt, and remove local mqtt installed, and handle keys through aws
+# TODO link certs to a fixed name and make nginx config server name agnostic
 
